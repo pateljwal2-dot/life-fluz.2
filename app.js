@@ -78,6 +78,7 @@ const app = (function() {
         setTimeout(() => {
             if (splashScreen) {
                 splashScreen.style.opacity = '0';
+
                 setTimeout(() => {
                     splashScreen.style.visibility = 'hidden';
                     splashScreen.style.display = 'none';
