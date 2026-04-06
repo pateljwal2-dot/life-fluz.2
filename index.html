@@ -52,6 +52,10 @@
                     <i data-lucide="sun" id="theme-icon-sun" class="hidden"></i>
                     <i data-lucide="moon" id="theme-icon-moon"></i>
                 </button>
+                
+                <div id="streak-badge" style="background: rgba(255, 115, 0, 0.15); color: #ff9100; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; display: none; align-items: center; gap: 4px; border: 1px solid rgba(255, 115, 0, 0.3); margin-right: 0.5rem; cursor: default;">
+                    <i data-lucide="flame" size="14"></i> <span id="streak-count">0</span>
+                </div>
 
                 <div class="user-panel" onclick="app.navigateTo('PROFILE')" tabindex="0" role="button">
                     <div id="user-avatar-small" class="avatar-small">U</div>
@@ -81,13 +85,8 @@
                 <div class="dashboard-grid">
                     <!-- Core Efficiency -->
                     <div class="card efficiency-card span-2">
-                        <div class="card-header" style="justify-content: space-between;">
-                            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                <h3 class="card-subtitle">CORE EFFICIENCY</h3>
-                                <div id="streak-badge" style="background: rgba(255, 115, 0, 0.15); color: #ff9100; padding: 2px 8px; border-radius: 12px; font-size: 0.65rem; font-weight: 800; display: none; align-items: center; gap: 4px; border: 1px solid rgba(255, 115, 0, 0.3);">
-                                    <i data-lucide="flame" size="12"></i> <span id="streak-count">0</span>
-                                </div>
-                            </div>
+                        <div class="card-header">
+                            <h3 class="card-subtitle">CORE EFFICIENCY</h3>
                             <i data-lucide="activity" size="18" class="text-muted"></i>
                         </div>
                         <div class="efficiency-display">
