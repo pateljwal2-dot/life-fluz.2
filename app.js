@@ -12,6 +12,8 @@ const app = (function() {
         completedIds: [], // array of IDs
         activeProfileId: 'default',
         profiles: [{ id: 'default', name: "Commander Vector", birthdate: "2000-01-01", avatar: null }],
+        currentStreak: 0,
+        dayGoalReached: false,
         history: [],
         rechargeData: [
             { id: 'hydration', label: 'HYDRATION', current: 0, total: 8, time: '08:00 AM' },
@@ -74,6 +76,9 @@ const app = (function() {
                 setTimeout(() => {
                     splashScreen.style.visibility = 'hidden';
                     splashScreen.style.display = 'none';
+                    if (state.profiles[0].name === "Commander Vector") {
+                        openModal('onboarding');
+                    }
                 }, 800);
             }
         }, 2500);
@@ -149,6 +154,11 @@ const app = (function() {
             state.history.unshift({ date: state.lastResetDate, efficiency: calculateEfficiency() });
             if(state.history.length > 30) state.history.pop(); // Keep last 30 days
             
+            if (!state.dayGoalReached) {
+                state.currentStreak = 0;
+            }
+            state.dayGoalReached = false;
+            
             state.rechargeData.forEach(p => p.current = 0);
             completedSet.clear();
             state.lastResetDate = todayStr;
@@ -206,16 +216,40 @@ const app = (function() {
     }
 
     // ----- ENTITY HANDLERS -----
+    function checkGoalReached() {
+        const eff = calculateEfficiency();
+        if (eff === 100) {
+            if (!state.dayGoalReached) {
+                state.dayGoalReached = true;
+                state.currentStreak = (state.currentStreak || 0) + 1;
+                if (window.confetti) {
+                    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#00ffcc', '#6366f1', '#ffffff'] });
+                }
+                saveState();
+            }
+        } else {
+            if (state.dayGoalReached) {
+                state.dayGoalReached = false;
+                state.currentStreak = Math.max(0, (state.currentStreak || 0) - 1);
+                saveState();
+            }
+        }
+    }
+
     function handleTaskToggle(id) {
         if (completedSet.has(id)) completedSet.delete(id);
         else completedSet.add(id);
+        checkGoalReached();
         render();
     }
 
     function handleProtocolIncrement(id) {
         const p = state.rechargeData.find(x => x.id === id);
-        if (p && p.current < p.total) p.current++;
-        render();
+        if (p && p.current < p.total) {
+            p.current++;
+            checkGoalReached();
+            render();
+        }
     }
     
     function removeProtocol(id, event) {
@@ -322,12 +356,22 @@ const app = (function() {
                     <div class="input-row"><label>Phase 3 (Dinner)</label><input id="input-d" value="${dayPlan.DINNER}"></div>
                     <button onclick="app.saveBlueprint('${payload}')" class="btn primary mt-4">Update Architecture</button>
                 </div>`;
+        } else if (type === 'onboarding') {
+            title = 'INITIALIZE COMMANDER';
+            bodyHtml = `
+                <div class="modal-body">
+                    <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.75rem;">Welcome to LifeFlux. Please set your credentials to synchronize the command center.</p>
+                    <div class="input-row"><label>Designation (Name)</label><input id="onboard-name" placeholder="Your Name" autofocus></div>
+                    <div class="input-row"><label>Origin Date (Birthdate)</label><input id="onboard-birth" type="date" value="2000-01-01"></div>
+                    <button onclick="app.saveOnboarding()" class="btn primary mt-4">Start System</button>
+                </div>`;
         }
 
+        let closeBtn = type === 'onboarding' ? '' : '<button onclick="app.closeModal()" class="icon-btn-small"><i data-lucide="x" size="20"></i></button>';
         content.innerHTML = `
             <div class="modal-header">
                 <h3 class="modal-title">${title}</h3>
-                <button onclick="app.closeModal()" class="icon-btn-small"><i data-lucide="x" size="20"></i></button>
+                ${closeBtn}
             </div>
             ${bodyHtml}
         `;
@@ -400,6 +444,18 @@ const app = (function() {
         render();
     }
 
+    function saveOnboarding() {
+        const name = document.getElementById('onboard-name').value;
+        const birth = document.getElementById('onboard-birth').value;
+        if(!name) return alert("System requires a Designation to proceed.");
+        const profile = state.profiles.find(p => p.id === state.activeProfileId);
+        profile.name = name;
+        profile.birthdate = birth || profile.birthdate;
+        closeModal();
+        saveState();
+        render();
+    }
+
     // ----- RENDER LOOP -----
     function render() {
         const profile = state.profiles.find(p => p.id === state.activeProfileId) || state.profiles[0];
@@ -456,6 +512,17 @@ const app = (function() {
         const effBar = document.getElementById('efficiency-bar');
         if(effVal) effVal.innerText = eff + '%';
         if(effBar) effBar.style.width = eff + '%';
+
+        const streakBadge = document.getElementById('streak-badge');
+        const streakCount = document.getElementById('streak-count');
+        if (streakBadge && streakCount) {
+            if ((state.currentStreak || 0) > 0) {
+                streakBadge.style.display = 'flex';
+                streakCount.innerText = state.currentStreak;
+            } else {
+                streakBadge.style.display = 'none';
+            }
+        }
 
         // Nutrition
         const mp = document.getElementById('mini-meal-plan');
@@ -598,7 +665,7 @@ const app = (function() {
         toggleTheme, navigateTo, toggleQuickMenu, 
         handleTaskToggle, handleProtocolIncrement, removeProtocol,
         openModal, closeModal, setAMPM, saveTask, saveProtocol,
-        saveProfile, saveNewProfile, saveBlueprint, performReset,
+        saveProfile, saveNewProfile, saveBlueprint, saveOnboarding, performReset,
         handleAvatarUpload, switchProfile, deleteActiveProfile,
         setSelectedDay
     };
