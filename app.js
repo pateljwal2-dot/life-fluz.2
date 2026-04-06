@@ -43,20 +43,92 @@ const app = (function() {
     let completedSet = new Set();
     let clockInterval;
     
-    // ----- CUSTOM MEDITATION AUDIO -----
-    const meditationMusic = new Audio('./Meditation Song.mp3');
-    meditationMusic.loop = true;
-    meditationMusic.volume = 0.5;
-    
-    // Audio Authorization Helper
-    const authorizeAudio = () => {
-        if (meditationMusic.paused) {
-            meditationMusic.play().then(() => {
-                meditationMusic.pause();
-                console.log("LifeFlux: Custom Audio Authorized.");
-            }).catch(e => console.log("LifeFlux: Pending Mobile Audio Authorization..."));
+    // ----- ZEN SYNTHESIZER (Elite Failsafe Soundscape) -----
+    const ZenSynthesizer = (function() {
+        let audioCtx = null;
+        let masterGain = null;
+        let droneOsc = null;
+        let chimeInterval = null;
+        let isAuthorized = false;
+
+        const PENTATONIC = [220, 261.63, 293.66, 329.63, 392, 440]; // A, C, D, E, G, A
+        
+        function init() {
+            if (audioCtx) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioCtx.createGain();
+                masterGain.connect(audioCtx.destination);
+                masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            } catch(e) { console.warn("LifeFlux: Audio Hardware Unavailable."); }
         }
-    };
+
+        async function authorize() {
+            if (isAuthorized) return;
+            init();
+            if (audioCtx && audioCtx.state === 'suspended') {
+                await audioCtx.resume();
+            }
+            isAuthorized = true;
+            console.log("LifeFlux: Zen Audio Channel Synchronized.");
+        }
+
+        function playChime() {
+            if (!audioCtx) return;
+            const freq = PENTATONIC[Math.floor(Math.random() * PENTATONIC.length)];
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 4);
+            
+            osc.connect(gain).connect(masterGain);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 4);
+        }
+
+        function start() {
+            authorize();
+            if (!audioCtx) return;
+            
+            // Low Drone (A2)
+            droneOsc = audioCtx.createOscillator();
+            const droneGain = audioCtx.createGain();
+            droneOsc.frequency.setValueAtTime(110, audioCtx.currentTime);
+            droneGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            droneOsc.connect(droneGain).connect(masterGain);
+            droneOsc.start();
+
+            // Fade in Master
+            masterGain.gain.setTargetAtTime(1.0, audioCtx.currentTime, 1.5);
+            
+            // Random Chimes
+            const scheduleNext = () => {
+                playChime();
+                const next = 1500 + (Math.random() * 3000);
+                chimeInterval = setTimeout(scheduleNext, next);
+            };
+            scheduleNext();
+        }
+
+        function stop() {
+            if (!audioCtx) return;
+            masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.8);
+            clearTimeout(chimeInterval);
+            setTimeout(() => {
+                if (droneOsc) {
+                    try { droneOsc.stop(); } catch(e) {}
+                    droneOsc = null;
+                }
+            }, 2000);
+        }
+
+        return { start, stop, authorize };
+    })();
     // ----- INITIALIZATION -----
     function init() {
         console.log("LifeFlux: Initializing...");
@@ -71,7 +143,7 @@ const app = (function() {
 
         // Global Interaction Warm-up (Mobile Gesture Authorization)
         const warmUp = () => {
-            authorizeAudio();
+            ZenSynthesizer.authorize();
             document.removeEventListener('click', warmUp);
             document.removeEventListener('touchstart', warmUp);
             document.removeEventListener('touchend', warmUp);
@@ -233,7 +305,7 @@ const app = (function() {
 
     function navigateTo(viewId) {
         state.currentView = viewId;
-        authorizeAudio(); // Transparently authorize audio engine on every navigation
+        ZenSynthesizer.authorize(); // Prime audio on every navigation
         
         // Update DOM classes for views
         document.querySelectorAll('.view').forEach(p => p.classList.remove('active'));
@@ -398,10 +470,10 @@ const app = (function() {
         // Music Logic for Meditation
         if (p.label.toLowerCase().includes('medit')) {
             if (p.isRunning) {
-                meditationMusic.play().catch(e => console.log("Audio Pending Authorization."));
-                showToast("Meditation sequence: Music Channel Synchronized. 🧘", "info");
+                ZenSynthesizer.start();
+                showToast("Meditation sequence: Zen Sync Complete. 🧘", "info");
             } else {
-                meditationMusic.pause();
+                ZenSynthesizer.stop();
             }
         }
 
@@ -418,8 +490,7 @@ const app = (function() {
 
         // Stop Music if it was Meditation
         if (p.label.toLowerCase().includes('medit')) {
-            meditationMusic.pause();
-            meditationMusic.currentTime = 0;
+            ZenSynthesizer.stop();
         }
 
         render();
@@ -443,8 +514,7 @@ const app = (function() {
 
                     // Stop Music if it was Meditation
                     if (p.label.toLowerCase().includes('medit')) {
-                        meditationMusic.pause();
-                        meditationMusic.currentTime = 0;
+                        ZenSynthesizer.stop();
                     }
                 }
             }
