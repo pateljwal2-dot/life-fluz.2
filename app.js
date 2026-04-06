@@ -25,11 +25,15 @@ const app = (function() {
         weeklyPlan: {}
     };
 
-    DAYS.forEach(day => {
-        defaultState.weeklyPlan[day] = {
-            BREAKFAST: 'Nutrient Shake V1', LUNCH: 'Power Salad', DINNER: 'Lean Protein Sync'
-        };
-    });
+    defaultState.weeklyPlan = {
+        SUNDAY:    { BREAKFAST: 'Optimization Omelet', LUNCH: 'Recovery Poke Bowl', DINNER: 'Macro-Dense Steak Grid' },
+        MONDAY:    { BREAKFAST: 'Nutrient Shake V1', LUNCH: 'Cognitive Salad', DINNER: 'Lean Protein Sync' },
+        TUESDAY:   { BREAKFAST: 'Oatmeal Fuel Cell', LUNCH: 'Turkey Spinach Wrap', DINNER: 'Beta-Carotene Chicken' },
+        WEDNESDAY: { BREAKFAST: 'Avocado Macro Toast', LUNCH: 'Mediterranean Matrix', DINNER: 'Omega-3 Salmon Filet' },
+        THURSDAY:  { BREAKFAST: 'Probiotic Yogurt Array', LUNCH: 'Lentil Broth & Sourdough', DINNER: 'Zucchini Meatball Module' },
+        FRIDAY:    { BREAKFAST: 'Peanut Butter Power Shake', LUNCH: 'Quinoa Energy Bowl', DINNER: 'Amino Acid Fajitas' },
+        SATURDAY:  { BREAKFAST: 'Protein Pancake Stack', LUNCH: 'Caesar Leaf Protocol', DINNER: 'Thermogenic Beef & Greens' }
+    };
 
     let state = {};
     let completedSet = new Set();
@@ -77,7 +81,7 @@ const app = (function() {
 
     // ----- STATE MANAGEMENT -----
     function loadState() {
-        const saved = localStorage.getItem('lifeflux_state_v3');
+        const saved = localStorage.getItem('lifeflux_state_v4');
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
@@ -94,7 +98,7 @@ const app = (function() {
 
     function saveState() {
         const toSave = { ...state, completedIds: Array.from(completedSet) };
-        localStorage.setItem('lifeflux_state_v3', JSON.stringify(toSave));
+        localStorage.setItem('lifeflux_state_v4', JSON.stringify(toSave));
     }
 
     function performReset() {
