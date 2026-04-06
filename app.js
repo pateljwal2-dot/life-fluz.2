@@ -237,10 +237,64 @@ const app = (function() {
         toast.innerHTML = `<i data-lucide="${icon}" size="16"></i> <span>${message}</span>`;
         container.appendChild(toast);
         if (window.lucide) lucide.createIcons();
+        
+        // Play premium UI Pop sound
+        try {
+            if(!window.audioCtx) window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if(window.audioCtx.state === 'suspended') window.audioCtx.resume();
+            const osc = window.audioCtx.createOscillator();
+            const gain = window.audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(window.audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(type === 'success' ? 800 : 300, window.audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(type === 'success' ? 400 : 150, window.audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0, window.audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.2, window.audioCtx.currentTime + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.001, window.audioCtx.currentTime + 0.15);
+            osc.start(window.audioCtx.currentTime);
+            osc.stop(window.audioCtx.currentTime + 0.15);
+        } catch(e) { console.log('Audio error:', e); }
+
         setTimeout(() => {
-            toast.style.animation = 'slideOutRight 0.3s ease forwards';
+            toast.style.animation = 'slideDownToast 0.3s ease forwards';
             setTimeout(() => toast.remove(), 300);
-        }, 5000);
+        }, 3500);
+    }
+
+    function playTriumphSound() {
+        try {
+            if(!window.audioCtx) window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if(window.audioCtx.state === 'suspended') window.audioCtx.resume();
+            const osc1 = window.audioCtx.createOscillator();
+            const osc2 = window.audioCtx.createOscillator();
+            const osc3 = window.audioCtx.createOscillator();
+            const gain = window.audioCtx.createGain();
+            
+            osc1.connect(gain);
+            osc2.connect(gain);
+            osc3.connect(gain);
+            gain.connect(window.audioCtx.destination);
+            
+            osc1.type = 'sine'; osc2.type = 'triangle'; osc3.type = 'sine';
+            
+            const t = window.audioCtx.currentTime;
+            osc1.frequency.setValueAtTime(523.25, t); // C5
+            osc2.frequency.setValueAtTime(659.25, t + 0.1); // E5
+            osc3.frequency.setValueAtTime(783.99, t + 0.2); // G5
+            
+            gain.gain.setValueAtTime(0, t);
+            gain.gain.linearRampToValueAtTime(0.15, t + 0.1);
+            gain.gain.setValueAtTime(0.15, t + 0.4);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+            
+            osc1.start(t);
+            osc2.start(t + 0.1);
+            osc3.start(t + 0.2);
+            osc1.stop(t + 0.8);
+            osc2.stop(t + 0.8);
+            osc3.stop(t + 0.8);
+        } catch(e) { console.log('Triumph audio error:', e); }
     }
 
     // ----- ENTITY HANDLERS -----
@@ -263,6 +317,7 @@ const app = (function() {
                 if (window.confetti) {
                     confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#00ffcc', '#6366f1', '#f43f5e'] });
                 }
+                playTriumphSound();
                 saveState();
             }
         } else {
@@ -410,12 +465,12 @@ const app = (function() {
             title = 'INITIALIZE COMMANDER';
             bodyHtml = `
                 <div class="modal-body">
-                    <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
-                        <p style="font-size: 0.75rem; color: var(--text-main); font-weight: 600; line-height: 1.5; text-align: justify;">LifeFlux is a high-performance system engineered to track your vital protocols, optimize nutrition, and build unbreakable momentum. To maintain your Failsafe Shields, absolutely perfect discipline is required. Do you accept the challenge?</p>
-                    </div>
                     <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.75rem;">Please set your credentials to synchronize the command center.</p>
                     <div class="input-row"><label>Designation (Name)</label><input id="onboard-name" placeholder="Your Name" autofocus></div>
                     <div class="input-row"><label>Origin Date (Birthdate)</label><input id="onboard-birth" type="date" value="2000-01-01"></div>
+                    <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); padding: 1rem; border-radius: var(--radius-md); margin-top: 1rem;">
+                        <p style="font-size: 0.75rem; color: var(--text-main); font-weight: 600; line-height: 1.5; text-align: justify;">LifeFlux is a high-performance system engineered to track your vital protocols, optimize nutrition, and build unbreakable momentum. To maintain your Failsafe Shields, absolutely perfect discipline is required. Do you accept the challenge?</p>
+                    </div>
                     <button onclick="app.saveOnboarding()" class="btn primary mt-4">Start System</button>
                 </div>`;
         } else if (type === 'manual') {

@@ -728,14 +728,14 @@ input:focus {
 }
 
 /* Toasts */
-.toast-container { position: fixed; top: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.75rem; pointer-events: none; }
-.toast { background: var(--bg-surface); border: 1px solid var(--border-color); padding: 1rem 1.5rem; border-radius: var(--radius-md); color: var(--text-main); font-weight: 600; font-size: 0.8rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); animation: slideInRight 0.4s var(--easing) forwards; display: flex; align-items: center; gap: 0.75rem; pointer-events: auto; }
-.toast.warning { border-left: 3px solid var(--danger); background: linear-gradient(90deg, rgba(239,68,68,0.05), transparent); }
+.toast-container { position: fixed; bottom: 6.5rem; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 0.75rem; pointer-events: none; width: 90%; max-width: 320px; }
+.toast { background: var(--bg-surface); border: 1px solid var(--border-color); padding: 1rem 1.5rem; border-radius: var(--radius-xl); color: var(--text-main); font-weight: 700; font-size: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); animation: slideUpToast 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; display: flex; align-items: center; justify-content: center; text-align: center; gap: 0.75rem; pointer-events: auto; z-index: 9999; }
+.toast.warning { border: 1px solid var(--danger); box-shadow: 0 5px 20px rgba(239, 68, 68, 0.15); }
 .toast.warning i { color: var(--danger); }
-.toast.success { border-left: 3px solid var(--accent); background: linear-gradient(90deg, rgba(99,102,241,0.05), transparent); }
+.toast.success { border: 1px solid var(--accent); box-shadow: 0 5px 20px rgba(0, 255, 204, 0.15); }
 .toast.success i { color: var(--accent); }
-@keyframes slideInRight { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-@keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
+@keyframes slideUpToast { from { transform: translateY(50px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+@keyframes slideDownToast { from { transform: translateY(0) scale(1); opacity: 1; } to { transform: translateY(50px) scale(0.9); opacity: 0; } }
 
 /* Warning Banner */
 .warning-banner { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; animation: fadeUp 0.3s ease; }
