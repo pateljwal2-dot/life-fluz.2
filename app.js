@@ -62,7 +62,7 @@ const app = (function() {
         const splashUserEl = document.getElementById('splash-greeting');
         const splashScreen = document.getElementById('splash-screen');
         
-        if (splashUserEl) splashUserEl.innerText = profile.name;
+        if (splashUserEl) splashUserEl.innerHTML = `Hi! <span style="font-weight: 900;">${profile.name}</span>`;
         
         setTimeout(() => {
             if (splashScreen) {
