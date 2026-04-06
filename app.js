@@ -674,6 +674,11 @@ const app = (function() {
         closeModal();
         saveState();
         render();
+        
+        // Show manual once after sign up
+        setTimeout(() => {
+            openModal('manual');
+        }, 500);
     }
 
     // ----- RENDER LOOP -----
