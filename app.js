@@ -42,7 +42,21 @@ const app = (function() {
     let state = {};
     let completedSet = new Set();
     let clockInterval;
-
+    
+    // ----- CUSTOM MEDITATION AUDIO -----
+    const meditationMusic = new Audio('Meditation Song.mp3');
+    meditationMusic.loop = true;
+    meditationMusic.volume = 0.5;
+    
+    // Audio Authorization Helper
+    const authorizeAudio = () => {
+        if (meditationMusic.paused) {
+            meditationMusic.play().then(() => {
+                meditationMusic.pause();
+                console.log("LifeFlux: Custom Audio Authorized.");
+            }).catch(e => console.log("LifeFlux: Pending Audio Authorization..."));
+        }
+    };
     // ----- INITIALIZATION -----
     function init() {
         console.log("LifeFlux: Initializing...");
@@ -54,6 +68,15 @@ const app = (function() {
         if (window.lucide) {
             lucide.createIcons();
         }
+
+        // Global Interaction Warm-up (Silent Authorization)
+        const warmUp = () => {
+            authorizeAudio();
+            document.removeEventListener('click', warmUp);
+            document.removeEventListener('touchstart', warmUp);
+        };
+        document.addEventListener('click', warmUp);
+        document.addEventListener('touchstart', warmUp);
 
         // Handle Splash
         initSplash();
@@ -208,6 +231,8 @@ const app = (function() {
 
     function navigateTo(viewId) {
         state.currentView = viewId;
+        authorizeAudio(); // Transparently authorize audio engine on every navigation
+        
         // Update DOM classes for views
         document.querySelectorAll('.view').forEach(p => p.classList.remove('active'));
         const targetView = document.getElementById(viewId);
@@ -367,6 +392,17 @@ const app = (function() {
         if (!p || !p.hasTimer) return;
         
         p.isRunning = !p.isRunning;
+
+        // Music Logic for Meditation
+        if (p.label.toLowerCase().includes('medit')) {
+            if (p.isRunning) {
+                meditationMusic.play().catch(e => console.log("Audio Pending Authorization."));
+                showToast("Meditation sequence: Music Channel Synchronized. 🧘", "info");
+            } else {
+                meditationMusic.pause();
+            }
+        }
+
         render();
     }
 
@@ -377,6 +413,13 @@ const app = (function() {
         
         p.isRunning = false;
         p.remaining = p.duration * 60;
+
+        // Stop Music if it was Meditation
+        if (p.label.toLowerCase().includes('medit')) {
+            meditationMusic.pause();
+            meditationMusic.currentTime = 0;
+        }
+
         render();
     }
 
@@ -395,6 +438,12 @@ const app = (function() {
                     showToast(`Protocol complete: ${p.label}`, 'success');
                     playTriumphSound();
                     checkGoalReached();
+
+                    // Stop Music if it was Meditation
+                    if (p.label.toLowerCase().includes('medit')) {
+                        meditationMusic.pause();
+                        meditationMusic.currentTime = 0;
+                    }
                 }
             }
         });
