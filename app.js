@@ -408,6 +408,14 @@ const app = (function() {
         }
     }
 
+    function removeTask(id, event) {
+        event.stopPropagation();
+        if(confirm("Remove this objective?")) {
+            state.fluxTasks = state.fluxTasks.filter(t => t.id !== id);
+            render();
+        }
+    }
+
     function switchProfile(profileId) {
         state.activeProfileId = profileId;
         render();
@@ -782,6 +790,9 @@ const app = (function() {
                                 <p class="task-time">${t.time}</p>
                                 <p class="task-name">${t.task}</p>
                             </div>
+                            <button onclick="app.removeTask('${t.id}', event)" class="task-delete" aria-label="Remove Task">
+                                <i data-lucide="trash-2" size="14"></i>
+                            </button>
                         </div>
                     `;
                 }).join('');
@@ -938,7 +949,7 @@ const app = (function() {
     return {
         get state() { return state; },
         toggleTheme, navigateTo, toggleQuickMenu, 
-        handleTaskToggle, handleProtocolIncrement, toggleProtocolTimer, resetProtocolTimer, removeProtocol,
+        handleTaskToggle, handleProtocolIncrement, toggleProtocolTimer, resetProtocolTimer, removeProtocol, removeTask,
         openModal, closeModal, setAMPM, saveTask, saveProtocol,
         saveProfile, saveNewProfile, saveBlueprint, saveOnboarding, performReset,
         handleAvatarUpload, switchProfile, deleteActiveProfile,

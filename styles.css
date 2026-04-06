@@ -452,6 +452,22 @@ input:focus {
     transition: opacity 0.3s;
 }
 .task-item.done .task-content { opacity: 0.4; }
+.task-delete {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.5rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    margin-left: 0.5rem;
+}
+.task-item:hover .task-delete { opacity: 1; }
+.task-delete:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
 .task-time { font-size: 0.6rem; font-weight: 800; color: var(--text-muted); letter-spacing: 0.1em; margin-bottom: 0.25rem; }
 .task-name { font-size: 0.9rem; font-weight: 600; }
 .task-item.done .task-name { text-decoration: line-through; }
@@ -822,5 +838,6 @@ input:checked + .slider:before { transform: translateX(20px); }
 .ticker-track { height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden; margin-top: 0.5rem; }
 .ticker-fill { height: 100%; background: var(--accent); transition: width 1s linear; }
 .ticker-card.active .ticker-display { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+
 
 
