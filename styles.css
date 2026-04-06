@@ -360,6 +360,7 @@ input:focus {
     letter-spacing: -0.05em;
     background: linear-gradient(135deg, var(--text-main), var(--text-muted));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 .efficiency-track {
@@ -424,7 +425,6 @@ input:focus {
 .task-item {
     display: flex;
     gap: 1rem;
-    group: hover;
 }
 .task-toggle {
     width: 22px;
@@ -468,7 +468,11 @@ input:focus {
     transition: all 0.2s;
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
+.protocol-card.timer-active { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); animation: pulse-border 2s infinite; }
+@keyframes pulse-border { 0% { border-color: var(--border-color); } 50% { border-color: var(--accent); } 100% { border-color: var(--border-color); } }
 .protocol-card:hover { border-color: var(--accent); transform: translateY(-2px); }
 .protocol-card:active { transform: scale(0.96); }
 .protocol-delete {
@@ -741,3 +745,82 @@ input:focus {
 .warning-banner { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; animation: fadeUp 0.3s ease; }
 .warning-banner-icon { color: var(--danger); display: flex; align-items: center; justify-content: center; background: rgba(239,68,68,0.2); width: 36px; height: 36px; border-radius: 50%; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
 .warning-banner-text { flex: 1; font-size: 0.75rem; font-weight: 700; color: #ff8f8f; line-height: 1.4; }
+
+/* Switch Toggle Styling */
+.switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--accent); }
+input:checked + .slider:before { transform: translateX(20px); }
+
+/* Task Timer UI */
+.task-timer-ui { background: var(--bg-surface); padding: 8px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 6px; }
+.task-timer-ui.running { border-color: var(--accent); box-shadow: 0 0 10px rgba(0, 255, 204, 0.1); }
+.timer-controls { display: flex; align-items: center; gap: 8px; }
+.timer-btn { width: 24px; height: 24px; border-radius: 50%; background: var(--border-color); color: var(--text-main); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.timer-btn.secondary-timer-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); }
+.timer-btn.secondary-timer-btn:hover { background: rgba(239, 68, 68, 0.1); border-color: var(--danger); color: var(--danger); }
+.task-timer-ui.running .timer-btn:not(.secondary-timer-btn) { background: var(--accent); color: var(--text-inverse); }
+.timer-display { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--text-main); }
+.timer-track { height: 3px; background: var(--border-color); border-radius: 2px; overflow: hidden; }
+.timer-fill { height: 100%; background: var(--accent); transition: width 1s linear; }
+
+/* Protocol Timer Separate Panel */
+.protocol-timer-panel {
+    border-top: 1px dashed var(--border-color);
+    padding-top: 1rem;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+.protocol-timer-panel.active { border-top-style: solid; border-top-color: var(--accent); }
+/* Active Tickers Section */
+.active-tickers-container { padding: 1.5rem; background: rgba(0, 255, 204, 0.03); border-radius: var(--radius-xl); border: 1px solid rgba(0, 255, 204, 0.1); }
+.tickers-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+@media(min-width: 768px) { .tickers-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.ticker-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    transition: all 0.3s var(--easing);
+    position: relative;
+    overflow: hidden;
+}
+.ticker-card.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--border-glow);
+}
+.ticker-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+.ticker-label { font-size: 0.6rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+.ticker-display {
+    font-family: var(--font-mono);
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1;
+    margin-bottom: 1rem;
+}
+.ticker-controls { display: flex; gap: 0.5rem; }
+.ticker-btn {
+    width: 32px; height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-base);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    transition: all 0.2s;
+}
+.ticker-btn:hover { border-color: var(--accent); color: var(--accent); }
+.ticker-btn.main { background: var(--accent); color: var(--text-inverse); border: none; }
+.ticker-btn.main:hover { transform: scale(1.05); box-shadow: var(--shadow-glow); }
+
+.ticker-track { height: 4px; background: var(--border-color); border-radius: 2px; overflow: hidden; margin-top: 0.5rem; }
+.ticker-fill { height: 100%; background: var(--accent); transition: width 1s linear; }
+.ticker-card.active .ticker-display { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+
+

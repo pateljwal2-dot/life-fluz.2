@@ -58,6 +58,9 @@ const app = (function() {
         // Handle Splash
         initSplash();
 
+        // Start Timer Ticker
+        setInterval(updateTimers, 1000);
+
         // Initial Render
         render();
         
@@ -356,6 +359,46 @@ const app = (function() {
             render();
         }
     }
+
+    function toggleProtocolTimer(protoId, event) {
+        event.stopPropagation();
+        const p = state.rechargeData.find(x => x.id === protoId);
+        if (!p || !p.hasTimer) return;
+        
+        p.isRunning = !p.isRunning;
+        render();
+    }
+
+    function resetProtocolTimer(protoId, event) {
+        event.stopPropagation();
+        const p = state.rechargeData.find(x => x.id === protoId);
+        if (!p || !p.hasTimer) return;
+        
+        p.isRunning = false;
+        p.remaining = p.duration * 60;
+        render();
+    }
+
+    function updateTimers() {
+        let changed = false;
+        state.rechargeData.forEach(p => {
+            if (p.hasTimer && p.isRunning && p.current < p.total) {
+                if (p.remaining > 0) {
+                    p.remaining--;
+                    changed = true;
+                } else {
+                    p.isRunning = false;
+                    p.remaining = p.duration * 60; // Reset for next iteration
+                    p.current++;
+                    changed = true;
+                    showToast(`Protocol complete: ${p.label}`, 'success');
+                    playTriumphSound();
+                    checkGoalReached();
+                }
+            }
+        });
+        if (changed) render();
+    }
     
     function removeProtocol(id, event) {
         event.stopPropagation();
@@ -424,6 +467,23 @@ const app = (function() {
                         <label>Iterations</label>
                         <input id="input-total" type="number" value="1" min="1" style="flex:1;">
                     </div>
+
+                    <div class="mt-4" style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.25rem; border-top: 1px solid var(--border-color);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">
+                            <i data-lucide="timer" size="16"></i>
+                            <span>ENABLE TIMER</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="timer-toggle-proto" onchange="document.getElementById('duration-row-proto').style.display = this.checked ? 'flex' : 'none'">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div id="duration-row-proto" class="input-row mt-2" style="display: none;">
+                        <label style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;">Duration (Minutes)</label>
+                        <input id="input-duration-proto" type="number" value="15" min="1" max="180">
+                    </div>
+
                     <button onclick="app.saveProtocol()" class="btn primary mt-4">Apply</button>
                 </div>`;
         } else if (type === 'factory_reset') {
@@ -549,8 +609,20 @@ const app = (function() {
     function saveProtocol() {
         const label = document.getElementById('input-label').value;
         const total = parseInt(document.getElementById('input-total').value);
+        const hasTimer = document.getElementById('timer-toggle-proto').checked;
+        const durationMins = parseInt(document.getElementById('input-duration-proto').value) || 15;
+
         if(!label) return;
-        state.rechargeData.push({ id: 'p-' + Date.now(), label: label.toUpperCase(), current: 0, total: total || 1 });
+        state.rechargeData.push({ 
+            id: 'p-' + Date.now(), 
+            label: label.toUpperCase(), 
+            current: 0, 
+            total: total || 1,
+            hasTimer,
+            duration: durationMins,
+            remaining: durationMins * 60,
+            isRunning: false
+        });
         closeModal();
         render();
     }
@@ -720,7 +792,7 @@ const app = (function() {
         const pg = document.getElementById('protocol-grid');
         if(pg) {
             pg.innerHTML = state.rechargeData.map(p => `
-                <div onclick="app.handleProtocolIncrement('${p.id}')" class="protocol-card" aria-label="Increment Protocol">
+                <div onclick="app.handleProtocolIncrement('${p.id}')" class="protocol-card ${p.hasTimer && p.isRunning ? 'timer-active' : ''}" aria-label="Increment Protocol">
                     <button onclick="app.removeProtocol('${p.id}', event)" class="protocol-delete" aria-label="Remove Protocol">
                         <i data-lucide="x" size="12"></i>
                     </button>
@@ -732,6 +804,52 @@ const app = (function() {
                 </div>
             `).join('');
         }
+
+        renderActiveTickers();
+    }
+
+    function renderActiveTickers() {
+        const container = document.getElementById('active-tickers-section');
+        if(!container) return;
+        
+        const protocolsWithTimers = state.rechargeData.filter(p => p.hasTimer && p.current < p.total);
+        if(protocolsWithTimers.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        container.innerHTML = `
+            <h3 class="card-subtitle mb-4">ACTIVE TELEMETRY</h3>
+            <div class="tickers-grid">
+                ${protocolsWithTimers.map(p => {
+                    const m = Math.floor(p.remaining / 60);
+                    const s = p.remaining % 60;
+                    const timeStr = `${m}:${s < 10 ? '0' : ''}${s}`;
+                    const progress = ((p.duration * 60 - p.remaining) / (p.duration * 60)) * 100;
+                    
+                    return `
+                        <div class="ticker-card ${p.isRunning ? 'active' : ''}">
+                            <div class="ticker-header">
+                                <span class="ticker-label">${p.label} synchronization in progress...</span>
+                                <div class="ticker-controls">
+                                    <button onclick="app.toggleProtocolTimer('${p.id}', event)" class="ticker-btn main">
+                                        <i data-lucide="${p.isRunning ? 'pause' : 'play'}" size="14"></i>
+                                    </button>
+                                    <button onclick="app.resetProtocolTimer('${p.id}', event)" class="ticker-btn">
+                                        <i data-lucide="rotate-ccw" size="14"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="ticker-display">${timeStr}</div>
+                            <div class="ticker-track">
+                                <div class="ticker-fill" style="width: ${progress}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
     }
 
     function renderWeekly() {
@@ -820,10 +938,10 @@ const app = (function() {
     return {
         get state() { return state; },
         toggleTheme, navigateTo, toggleQuickMenu, 
-        handleTaskToggle, handleProtocolIncrement, removeProtocol,
+        handleTaskToggle, handleProtocolIncrement, toggleProtocolTimer, resetProtocolTimer, removeProtocol,
         openModal, closeModal, setAMPM, saveTask, saveProtocol,
         saveProfile, saveNewProfile, saveBlueprint, saveOnboarding, performReset,
         handleAvatarUpload, switchProfile, deleteActiveProfile,
-        setSelectedDay
+        setSelectedDay, renderActiveTickers
     };
 })();
