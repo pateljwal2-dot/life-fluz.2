@@ -44,7 +44,7 @@ const app = (function() {
     let clockInterval;
     
     // ----- CUSTOM MEDITATION AUDIO -----
-    const meditationMusic = new Audio('Meditation Song.mp3');
+    const meditationMusic = new Audio('./Meditation Song.mp3');
     meditationMusic.loop = true;
     meditationMusic.volume = 0.5;
     
@@ -54,7 +54,7 @@ const app = (function() {
             meditationMusic.play().then(() => {
                 meditationMusic.pause();
                 console.log("LifeFlux: Custom Audio Authorized.");
-            }).catch(e => console.log("LifeFlux: Pending Audio Authorization..."));
+            }).catch(e => console.log("LifeFlux: Pending Mobile Audio Authorization..."));
         }
     };
     // ----- INITIALIZATION -----
@@ -69,14 +69,16 @@ const app = (function() {
             lucide.createIcons();
         }
 
-        // Global Interaction Warm-up (Silent Authorization)
+        // Global Interaction Warm-up (Mobile Gesture Authorization)
         const warmUp = () => {
             authorizeAudio();
             document.removeEventListener('click', warmUp);
             document.removeEventListener('touchstart', warmUp);
+            document.removeEventListener('touchend', warmUp);
         };
         document.addEventListener('click', warmUp);
         document.addEventListener('touchstart', warmUp);
+        document.addEventListener('touchend', warmUp);
 
         // Handle Splash
         initSplash();
