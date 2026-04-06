@@ -726,3 +726,18 @@ input:focus {
 @media(max-width: 639px) {
     .hidden-mobile { display: none !important; }
 }
+
+/* Toasts */
+.toast-container { position: fixed; top: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.75rem; pointer-events: none; }
+.toast { background: var(--bg-surface); border: 1px solid var(--border-color); padding: 1rem 1.5rem; border-radius: var(--radius-md); color: var(--text-main); font-weight: 600; font-size: 0.8rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); animation: slideInRight 0.4s var(--easing) forwards; display: flex; align-items: center; gap: 0.75rem; pointer-events: auto; }
+.toast.warning { border-left: 3px solid var(--danger); background: linear-gradient(90deg, rgba(239,68,68,0.05), transparent); }
+.toast.warning i { color: var(--danger); }
+.toast.success { border-left: 3px solid var(--accent); background: linear-gradient(90deg, rgba(99,102,241,0.05), transparent); }
+.toast.success i { color: var(--accent); }
+@keyframes slideInRight { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
+
+/* Warning Banner */
+.warning-banner { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; animation: fadeUp 0.3s ease; }
+.warning-banner-icon { color: var(--danger); display: flex; align-items: center; justify-content: center; background: rgba(239,68,68,0.2); width: 36px; height: 36px; border-radius: 50%; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+.warning-banner-text { flex: 1; font-size: 0.75rem; font-weight: 700; color: #ff8f8f; line-height: 1.4; }

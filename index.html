@@ -22,6 +22,7 @@
         <div class="splash-content">
             <h1 id="splash-greeting" class="splash-title" style="font-weight: 300; margin-bottom: 1rem;">Hi! <span style="font-weight: 900;">User</span></h1>
             <p class="splash-subtitle">FLOW WITHOUT LIMIT</p>
+            <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; margin-top: 1rem; opacity: 0.7; animation: pulse 3s infinite;">A HIGH-PERFORMANCE DAILY PROTOCOL TRACKER</p>
         </div>
     </div>
 
@@ -48,14 +49,14 @@
                     <span id="clock" class="clock-time">12:00 PM</span>
                 </div>
                 
+                <button onclick="app.openModal('manual')" class="icon-btn" aria-label="System Manual" title="System Manual">
+                    <i data-lucide="book-open" size="18"></i>
+                </button>
+
                 <button onclick="app.toggleTheme()" class="icon-btn theme-toggle" aria-label="Toggle Theme">
                     <i data-lucide="sun" id="theme-icon-sun" class="hidden"></i>
                     <i data-lucide="moon" id="theme-icon-moon"></i>
                 </button>
-                
-                <div id="streak-badge" style="background: rgba(255, 115, 0, 0.15); color: #ff9100; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; display: none; align-items: center; gap: 4px; border: 1px solid rgba(255, 115, 0, 0.3); margin-right: 0.5rem; cursor: default;">
-                    <i data-lucide="flame" size="14"></i> <span id="streak-count">0</span>
-                </div>
 
                 <div class="user-panel" onclick="app.navigateTo('PROFILE')" tabindex="0" role="button">
                     <div id="user-avatar-small" class="avatar-small">U</div>
@@ -80,13 +81,26 @@
                 </header>
 
                 <!-- Day Selector -->
-                <nav class="day-selector" id="day-selector" aria-label="Day Selector"></nav>
+                <div id="day-selector" class="day-selector"></div>
+
+                <div id="warning-banner" class="warning-banner" style="display: none;">
+                    <div class="warning-banner-icon"><i data-lucide="alert-triangle" size="20"></i></div>
+                    <div class="warning-banner-text">CRITICAL ALERT: Your discipline streak will terminate at midnight. Secure remaining objectives to prevent Failsafe Shield depletion!</div>
+                </div>
 
                 <div class="dashboard-grid">
                     <!-- Core Efficiency -->
                     <div class="card efficiency-card span-2">
-                        <div class="card-header">
-                            <h3 class="card-subtitle">CORE EFFICIENCY</h3>
+                        <div class="card-header" style="justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                <h3 class="card-subtitle">CORE EFFICIENCY</h3>
+                                <div id="streak-badge" onclick="app.openModal('streak_message')" style="cursor: pointer; background: rgba(255, 115, 0, 0.15); color: #ff9100; padding: 2px 8px; border-radius: 12px; font-size: 0.65rem; font-weight: 800; display: none; align-items: center; gap: 4px; border: 1px solid rgba(255, 115, 0, 0.3); transition: all 0.2s ease;">
+                                    <i data-lucide="flame" size="12"></i> <span id="streak-count">0</span>
+                                </div>
+                                <div id="lives-badge" onclick="app.openModal('streak_message')" style="cursor: pointer; background: rgba(244, 63, 94, 0.15); color: #f43f5e; padding: 2px 8px; border-radius: 12px; font-size: 0.65rem; font-weight: 800; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(244, 63, 94, 0.3); transition: all 0.2s ease;" title="Failsafes left">
+                                    <i data-lucide="shield" size="12"></i> <span id="lives-count">5</span>
+                                </div>
+                            </div>
                             <i data-lucide="activity" size="18" class="text-muted"></i>
                         </div>
                         <div class="efficiency-display">
@@ -268,7 +282,10 @@
         </div>
     </nav>
 
-    <!-- Main Logic -->
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Application Logic -->
     <script src="./app.js"></script>
 </body>
 </html>

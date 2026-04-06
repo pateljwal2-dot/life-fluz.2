@@ -14,6 +14,8 @@ const app = (function() {
         profiles: [{ id: 'default', name: "Commander Vector", birthdate: "2000-01-01", avatar: null }],
         currentStreak: 0,
         dayGoalReached: false,
+        almostDoneNotified: false,
+        lives: 5,
         history: [],
         rechargeData: [
             { id: 'hydration', label: 'HYDRATION', current: 0, total: 8, time: '08:00 AM' },
@@ -154,8 +156,19 @@ const app = (function() {
             state.history.unshift({ date: state.lastResetDate, efficiency: calculateEfficiency() });
             if(state.history.length > 30) state.history.pop(); // Keep last 30 days
             
+            if (state.lives === undefined) state.lives = 5;
+            const currentMonth = now.getMonth();
+            if (state.lastMonth !== undefined && currentMonth !== state.lastMonth) {
+                state.lives = 5;
+            }
+            state.lastMonth = currentMonth;
+
             if (!state.dayGoalReached) {
-                state.currentStreak = 0;
+                if (state.lives > 0 && state.currentStreak > 0) {
+                    state.lives--;
+                } else {
+                    state.currentStreak = 0;
+                }
             }
             state.dayGoalReached = false;
             
@@ -215,15 +228,40 @@ const app = (function() {
         btn.classList.toggle('open', !isHidden);
     }
 
+    function showToast(message, type="success") {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        let icon = type === 'warning' ? 'alert-triangle' : 'zap';
+        toast.innerHTML = `<i data-lucide="${icon}" size="16"></i> <span>${message}</span>`;
+        container.appendChild(toast);
+        if (window.lucide) lucide.createIcons();
+        setTimeout(() => {
+            toast.style.animation = 'slideOutRight 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
+
     // ----- ENTITY HANDLERS -----
     function checkGoalReached() {
+        if (state.lives === undefined) state.lives = 5;
+        const currentDay = DAYS[new Date().getDay()];
+        const tasks = state.fluxTasks.filter(t => t.day === currentDay);
+        const total = state.rechargeData.length + tasks.length;
+        if (total === 0) return;
+        const doneProtocols = state.rechargeData.filter(p => p.current >= p.total).length;
+        const doneTasks = tasks.filter(t => completedSet.has(t.id)).length;
+        const completed = doneProtocols + doneTasks;
+
         const eff = calculateEfficiency();
         if (eff === 100) {
             if (!state.dayGoalReached) {
                 state.dayGoalReached = true;
                 state.currentStreak = (state.currentStreak || 0) + 1;
+                if (state.currentStreak % 7 === 0 && state.lives < 5) state.lives++;
                 if (window.confetti) {
-                    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#00ffcc', '#6366f1', '#ffffff'] });
+                    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#00ffcc', '#6366f1', '#f43f5e'] });
                 }
                 saveState();
             }
@@ -232,6 +270,18 @@ const app = (function() {
                 state.dayGoalReached = false;
                 state.currentStreak = Math.max(0, (state.currentStreak || 0) - 1);
                 saveState();
+            }
+            if (completed === total - 1) {
+                if (!state.almostDoneNotified) {
+                    showToast("Only 1 objective left to add one streak! 🔥", "success");
+                    state.almostDoneNotified = true;
+                    saveState();
+                }
+            } else {
+                if (state.almostDoneNotified) {
+                    state.almostDoneNotified = false;
+                    saveState();
+                }
             }
         }
     }
@@ -351,19 +401,54 @@ const app = (function() {
             const dayPlan = state.weeklyPlan[payload];
             bodyHtml = `
                 <div class="modal-body">
-                    <div class="input-row"><label>Phase 1 (Breakfast)</label><input id="input-b" value="${dayPlan.BREAKFAST}"></div>
-                    <div class="input-row"><label>Phase 2 (Lunch)</label><input id="input-l" value="${dayPlan.LUNCH}"></div>
-                    <div class="input-row"><label>Phase 3 (Dinner)</label><input id="input-d" value="${dayPlan.DINNER}"></div>
+                    <div class="input-row"><label>1. Breakfast</label><input id="input-b" value="${dayPlan.BREAKFAST}"></div>
+                    <div class="input-row"><label>2. Lunch</label><input id="input-l" value="${dayPlan.LUNCH}"></div>
+                    <div class="input-row"><label>3. Dinner</label><input id="input-d" value="${dayPlan.DINNER}"></div>
                     <button onclick="app.saveBlueprint('${payload}')" class="btn primary mt-4">Update Architecture</button>
                 </div>`;
         } else if (type === 'onboarding') {
             title = 'INITIALIZE COMMANDER';
             bodyHtml = `
                 <div class="modal-body">
-                    <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.75rem;">Welcome to LifeFlux. Please set your credentials to synchronize the command center.</p>
+                    <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+                        <p style="font-size: 0.75rem; color: var(--text-main); font-weight: 600; line-height: 1.5; text-align: justify;">LifeFlux is a high-performance system engineered to track your vital protocols, optimize nutrition, and build unbreakable momentum. To maintain your Failsafe Shields, absolutely perfect discipline is required. Do you accept the challenge?</p>
+                    </div>
+                    <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.75rem;">Please set your credentials to synchronize the command center.</p>
                     <div class="input-row"><label>Designation (Name)</label><input id="onboard-name" placeholder="Your Name" autofocus></div>
                     <div class="input-row"><label>Origin Date (Birthdate)</label><input id="onboard-birth" type="date" value="2000-01-01"></div>
                     <button onclick="app.saveOnboarding()" class="btn primary mt-4">Start System</button>
+                </div>`;
+        } else if (type === 'manual') {
+            title = 'SYSTEM MANUAL';
+            bodyHtml = `
+                <div class="modal-body" style="font-size: 0.75rem; line-height: 1.6; color: var(--text-main);">
+                    <h3 style="color: var(--accent); margin-bottom: 0.5rem; font-size: 0.85rem; display: flex; align-items: center;"><i data-lucide="target" size="14" style="margin-right: 4px;"></i> THE OBJECTIVE</h3>
+                    <p style="margin-bottom: 1rem;">LifeFlux is engineered to gamify and track your daily discipline. Complete 100% of your tasks and protocols before midnight every day to build your streak.</p>
+                    
+                    <h3 style="color: #ff9100; margin-bottom: 0.5rem; font-size: 0.85rem; display: flex; align-items: center;"><i data-lucide="flame" size="14" style="margin-right: 4px;"></i> STREAK SYSTEM</h3>
+                    <p style="margin-bottom: 1rem;">Core Efficiency must reach 100% daily. Securing 100% efficiency adds to your Streak. Failing a day endangers your progress.</p>
+                    
+                    <h3 style="color: #f43f5e; margin-bottom: 0.5rem; font-size: 0.85rem; display: flex; align-items: center;"><i data-lucide="shield" size="14" style="margin-right: 4px;"></i> FAILSAFE SHIELDS</h3>
+                    <p style="margin-bottom: 1.5rem;">You are granted 5 Failsafe Shields strictly per month. Missing a day consumes a shield instead of destroying your streak. If all shields hit 0, your streak breaks entirely. A flawless 7-day streak regenerates 1 shield.</p>
+                    
+                    <button onclick="app.closeModal()" class="btn primary">Acknowledge</button>
+                </div>`;
+        } else if (type === 'streak_message') {
+            title = 'STREAK STATUS';
+            const currentLives = state.lives !== undefined ? state.lives : 5;
+            bodyHtml = `
+                <div class="modal-body" style="text-align: center;">
+                    <i data-lucide="flame" size="48" style="color: #ff9100; margin: 0 auto 1rem; display: block;"></i>
+                    <p style="font-size: 1.1rem; font-weight: bold; margin-bottom: 0.5rem; color: var(--text-main);">
+                        You have completed ${state.currentStreak || 0} consecutive day${(state.currentStreak || 0) === 1 ? '' : 's'} of tasks!
+                    </p>
+                    <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 0.5rem; line-height: 1.5;">Maintain 100% Core Efficiency daily to keep your discipline streak alive.</p>
+                    <div style="background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); padding: 0.5rem; border-radius: 8px; margin-bottom: 1.5rem; display: inline-block;">
+                        <span style="color: #f43f5e; font-weight: bold; font-size: 0.9rem;"><i data-lucide="shield" size="14" style="margin-right:4px;"></i> Failsafe Shields: ${currentLives}/5</span>
+                        <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Lose a shield instead of your streak for missed days.</p>
+                    </div>
+                    <br>
+                    <button onclick="app.closeModal()" class="btn primary">Acknowledge</button>
                 </div>`;
         }
 
@@ -495,6 +580,18 @@ const app = (function() {
     }
 
     function renderDashboard(profile) {
+        // Warning Banner
+        const notificationBanner = document.getElementById('warning-banner');
+        if (notificationBanner) {
+            const now = new Date();
+            // Show warning if after 8PM and day goal not reached
+            if (now.getHours() >= 20 && !state.dayGoalReached && state.currentStreak > 0) {
+                notificationBanner.style.display = 'flex';
+            } else {
+                notificationBanner.style.display = 'none';
+            }
+        }
+
         // Day Selector
         const ds = document.getElementById('day-selector');
         if(ds) {
@@ -523,15 +620,20 @@ const app = (function() {
                 streakBadge.style.display = 'none';
             }
         }
+        
+        const livesCount = document.getElementById('lives-count');
+        if (livesCount) {
+            livesCount.innerText = state.lives !== undefined ? state.lives : 5;
+        }
 
         // Nutrition
         const mp = document.getElementById('mini-meal-plan');
         const dayPlan = state.weeklyPlan[state.selectedDay];
         if(mp) {
             mp.innerHTML = `
-                <div class="meal-row"><span class="meal-label">Phase 1</span><span class="meal-desc truncate" title="${dayPlan.BREAKFAST}">${dayPlan.BREAKFAST}</span></div>
-                <div class="meal-row"><span class="meal-label">Phase 2</span><span class="meal-desc truncate" title="${dayPlan.LUNCH}">${dayPlan.LUNCH}</span></div>
-                <div class="meal-row" style="margin-bottom:0;"><span class="meal-label">Phase 3</span><span class="meal-desc truncate" title="${dayPlan.DINNER}">${dayPlan.DINNER}</span></div>
+                <div class="meal-row"><span class="meal-label">1. Breakfast</span><span class="meal-desc truncate" title="${dayPlan.BREAKFAST}">${dayPlan.BREAKFAST}</span></div>
+                <div class="meal-row"><span class="meal-label">2. Lunch</span><span class="meal-desc truncate" title="${dayPlan.LUNCH}">${dayPlan.LUNCH}</span></div>
+                <div class="meal-row" style="margin-bottom:0;"><span class="meal-label">3. Dinner</span><span class="meal-desc truncate" title="${dayPlan.DINNER}">${dayPlan.DINNER}</span></div>
             `;
         }
 
@@ -586,9 +688,9 @@ const app = (function() {
                 <div class="day-card">
                     <button onclick="app.openModal('edit_blueprint', '${d}')" class="icon-btn-small day-card-edit"><i data-lucide="edit-3" size="14"></i></button>
                     <h4>${d}</h4>
-                    <div class="day-card-item"><label>Phase 1</label><span class="truncate block">${plan.BREAKFAST}</span></div>
-                    <div class="day-card-item"><label>Phase 2</label><span class="truncate block">${plan.LUNCH}</span></div>
-                    <div class="day-card-item"><label>Phase 3</label><span class="truncate block">${plan.DINNER}</span></div>
+                    <div class="day-card-item"><label>1. Breakfast</label><span class="truncate block">${plan.BREAKFAST}</span></div>
+                    <div class="day-card-item"><label>2. Lunch</label><span class="truncate block">${plan.LUNCH}</span></div>
+                    <div class="day-card-item"><label>3. Dinner</label><span class="truncate block">${plan.DINNER}</span></div>
                 </div>`;
             }).join('');
         }
