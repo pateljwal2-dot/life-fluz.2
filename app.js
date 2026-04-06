@@ -83,7 +83,7 @@ const app = (function() {
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
             
             gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.1);
+            gain.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.1);
             gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 4);
             
             osc.connect(gain).connect(masterGain);
@@ -99,7 +99,7 @@ const app = (function() {
             droneOsc = audioCtx.createOscillator();
             const droneGain = audioCtx.createGain();
             droneOsc.frequency.setValueAtTime(110, audioCtx.currentTime);
-            droneGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            droneGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
             droneOsc.connect(droneGain).connect(masterGain);
             droneOsc.start();
 
