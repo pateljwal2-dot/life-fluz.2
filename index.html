@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeFlux | Command Center</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Styles -->
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="theme-dark">
+
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="splash">
+        <div class="splash-content">
+            <div class="logo-wrapper">
+                <span class="logo-icon"><i data-lucide="hexagon" size="48"></i></span>
+                <h1 class="splash-title">LIFE<span class="accent">FLUX</span></h1>
+            </div>
+            <h2 id="splash-greeting" class="splash-user">Initializing...</h2>
+            <p class="splash-subtitle">COMMAND CENTER V2.0</p>
+            <div class="progress-bar-container">
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div id="modal-content" class="modal-content">
+            <!-- Content injected via JS -->
+        </div>
+    </div>
+
+    <div class="app-layout">
+        <!-- Desktop Sidebar / Mobile Topbar -->
+        <header class="app-header">
+            <div class="header-logo" onclick="app.navigateTo('DASHBOARD')" tabindex="0" role="button">
+                <i data-lucide="hexagon" size="28" class="accent"></i>
+                <div class="brand">
+                    <h1>LIFE<span class="accent">FLUX</span></h1>
+                    <span class="version">V2.0</span>
+                </div>
+            </div>
+            
+            <div class="header-controls">
+                <div class="clock-panel hidden-mobile">
+                    <span id="header-day" class="clock-day">MONDAY</span>
+                    <span id="clock" class="clock-time">12:00 PM</span>
+                </div>
+                
+                <button onclick="app.toggleTheme()" class="icon-btn theme-toggle" aria-label="Toggle Theme">
+                    <i data-lucide="sun" id="theme-icon-sun" class="hidden"></i>
+                    <i data-lucide="moon" id="theme-icon-moon"></i>
+                </button>
+
+                <div class="user-panel" onclick="app.navigateTo('PROFILE')" tabindex="0" role="button">
+                    <div id="user-avatar-small" class="avatar-small">U</div>
+                    <div class="user-info hidden-mobile">
+                        <span id="user-name-small" class="user-name truncate">User Alpha</span>
+                        <span class="user-role">Commander</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- VIEW: DASHBOARD -->
+            <section id="DASHBOARD" class="view active">
+                <header class="view-header">
+                    <div class="greeting-container">
+                        <i data-lucide="zap" size="24" class="accent"></i>
+                        <h2 class="view-title">Welcome, <span id="user-greeting" class="accent">Commander</span></h2>
+                    </div>
+                </header>
+
+                <!-- Day Selector -->
+                <nav class="day-selector" id="day-selector" aria-label="Day Selector"></nav>
+
+                <div class="dashboard-grid">
+                    <!-- Core Efficiency -->
+                    <div class="card efficiency-card span-2">
+                        <div class="card-header">
+                            <h3 class="card-subtitle">CORE EFFICIENCY</h3>
+                            <i data-lucide="activity" size="18" class="text-muted"></i>
+                        </div>
+                        <div class="efficiency-display">
+                            <span id="efficiency-value" class="efficiency-text">0%</span>
+                            <div class="efficiency-track mt-4">
+                                <div id="efficiency-bar" class="efficiency-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Nutrition Blueprint -->
+                    <div class="card nutrition-card">
+                        <div class="card-header">
+                            <h3 class="card-subtitle">NUTRITION SYNC</h3>
+                            <button onclick="app.openModal('edit_blueprint', app.state.selectedDay)" class="icon-btn-small" aria-label="Edit Nutrition">
+                                <i data-lucide="edit-3" size="14"></i>
+                            </button>
+                        </div>
+                        <div class="meal-plan" id="mini-meal-plan">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid cols-2 mt-6">
+                    <!-- Objectives -->
+                    <div class="card objectives-card">
+                        <div class="card-header">
+                            <h3 class="card-subtitle">DAILY OBJECTIVES</h3>
+                            <button onclick="app.openModal('add_task')" class="icon-btn solid" aria-label="Add Objective">
+                                <i data-lucide="plus" size="16"></i>
+                            </button>
+                        </div>
+                        <div class="timeline-list" id="timeline-list">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Protocols -->
+                    <div class="card protocols-card">
+                        <div class="card-header">
+                            <h3 class="card-subtitle">PROTOCOL CHECK</h3>
+                            <button onclick="app.openModal('add_protocol')" class="icon-btn solid" aria-label="Add Protocol">
+                                <i data-lucide="plus" size="16"></i>
+                            </button>
+                        </div>
+                        <div class="protocol-grid" id="protocol-grid">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: WEEKLY ARCHITECTURE -->
+            <section id="WEEKLY_ARCHITECTURE" class="view">
+                <header class="view-header">
+                    <button onclick="app.navigateTo('DASHBOARD')" class="icon-btn" aria-label="Go Back">
+                        <i data-lucide="chevron-left" size="20"></i>
+                    </button>
+                    <h2 class="view-title">Architecture Plan</h2>
+                </header>
+                <div class="weekly-grid" id="full-weekly-grid">
+                    <!-- Injected via JS -->
+                </div>
+            </section>
+
+            <!-- VIEW: HISTORY -->
+            <section id="HISTORY" class="view narrow">
+                <header class="view-header">
+                    <button onclick="app.navigateTo('DASHBOARD')" class="icon-btn" aria-label="Go Back">
+                        <i data-lucide="chevron-left" size="20"></i>
+                    </button>
+                    <h2 class="view-title">System Logs</h2>
+                </header>
+                <div class="history-list" id="history-list">
+                    <!-- Injected via JS -->
+                </div>
+            </section>
+
+            <!-- VIEW: PROFILE -->
+            <section id="PROFILE" class="view narrow">
+                <header class="view-header space-between">
+                    <div class="flex items-center gap-4">
+                        <button onclick="app.navigateTo('DASHBOARD')" class="icon-btn" aria-label="Go Back">
+                            <i data-lucide="chevron-left" size="20"></i>
+                        </button>
+                        <h2 class="view-title">System Settings</h2>
+                    </div>
+                    <button onclick="app.openModal('add_profile')" class="btn primary small">
+                        <i data-lucide="user-plus" size="14"></i> NEW PROFILE
+                    </button>
+                </header>
+
+                <div class="profile-layout">
+                    <!-- Profile Selector -->
+                    <aside class="profile-sidebar">
+                        <h3 class="card-subtitle mb-4">ACTIVE PROFILES</h3>
+                        <div id="profile-selector-list" class="profile-list">
+                            <!-- Injected via JS -->
+                        </div>
+                    </aside>
+
+                    <!-- Profile Details -->
+                    <div class="card profile-details-panel">
+                        <button onclick="app.openModal('edit_profile')" class="icon-btn absolute top-6 right-6" aria-label="Edit Profile">
+                            <i data-lucide="pencil" size="14"></i>
+                        </button>
+                        
+                        <div class="profile-header-large">
+                            <div class="avatar-upload-wrapper">
+                                <div id="profile-avatar-large" class="avatar-large">U</div>
+                                <input type="file" id="avatar-input" class="hidden" accept="image/*" onchange="app.handleAvatarUpload(event)">
+                                <button onclick="document.getElementById('avatar-input').click()" class="icon-btn solid avatar-upload-btn" aria-label="Upload Avatar">
+                                    <i data-lucide="camera" size="16"></i>
+                                </button>
+                            </div>
+                            <h3 id="profile-name-large" class="profile-name-display mt-4">User Alpha</h3>
+                            <div class="age-stats mt-6" id="age-stats">
+                                <!-- Injected via JS -->
+                            </div>
+                        </div>
+
+                        <div class="system-controls mt-8 pt-8">
+                            <button onclick="app.deleteActiveProfile()" id="delete-profile-btn" class="btn danger hidden">Delete Profile</button>
+                            <button onclick="app.openModal('factory_reset')" class="btn secondary warning-hover">Initiate System Wipe</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="bottom-nav">
+        <!-- Quick Action Menu -->
+        <div id="quick-menu" class="quick-menu hidden">
+            <button onclick="app.openModal('add_protocol')" class="quick-menu-item">
+                <div class="icon-wrapper protocol-icon"><i data-lucide="activity" size="18"></i></div>
+                <span>New Protocol</span>
+            </button>
+            <button onclick="app.openModal('add_task')" class="quick-menu-item">
+                <div class="icon-wrapper task-icon"><i data-lucide="clipboard-list" size="18"></i></div>
+                <span>New Objective</span>
+            </button>
+        </div>
+
+        <div class="nav-dock">
+            <button onclick="app.navigateTo('DASHBOARD')" class="nav-btn" id="nav-DASHBOARD" aria-label="Dashboard">
+                <i data-lucide="zap" size="22"></i>
+                <span class="nav-label">Core</span>
+            </button>
+            <button onclick="app.navigateTo('HISTORY')" class="nav-btn" id="nav-HISTORY" aria-label="History">
+                <i data-lucide="history" size="22"></i>
+                <span class="nav-label">Logs</span>
+            </button>
+            
+            <div class="nav-fab-container">
+                <button onclick="app.toggleQuickMenu()" id="plus-btn" class="nav-fab" aria-label="Quick Actions">
+                    <i data-lucide="plus" size="24"></i>
+                </button>
+            </div>
+
+            <button onclick="app.navigateTo('WEEKLY_ARCHITECTURE')" class="nav-btn" id="nav-WEEKLY_ARCHITECTURE" aria-label="Weekly Plan">
+                <i data-lucide="layout-grid" size="22"></i>
+                <span class="nav-label">Plan</span>
+            </button>
+            <button onclick="app.navigateTo('PROFILE')" class="nav-btn" id="nav-PROFILE" aria-label="Profile">
+                <i data-lucide="settings" size="22"></i>
+                <span class="nav-label">System</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Logic -->
+    <script src="./app.js"></script>
+</body>
+</html>
