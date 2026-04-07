@@ -229,7 +229,7 @@ const app = (function() {
     }
 
     function calculateEfficiency() {
-        const currentDay = DAYS[new Date().getDay()];
+        const currentDay = state.selectedDay || DAYS[new Date().getDay()];
         const tasks = state.fluxTasks.filter(t => t.day === currentDay);
         const total = state.rechargeData.length + tasks.length;
         if (total === 0) return 0;
@@ -871,6 +871,16 @@ const app = (function() {
         const effBar = document.getElementById('efficiency-bar');
         if(effVal) effVal.innerText = eff + '%';
         if(effBar) effBar.style.width = eff + '%';
+
+        // Fused Telemetry Status
+        const currentDay = state.selectedDay || DAYS[new Date().getDay()];
+        const tasks = state.fluxTasks.filter(t => t.day === currentDay);
+        const doneTasks = tasks.filter(t => completedSet.has(t.id)).length;
+        const doneProtocols = state.rechargeData.filter(p => p.current >= p.total).length;
+        const statusEl = document.getElementById('efficiency-status');
+        if(statusEl) {
+            statusEl.innerText = `${doneTasks}/${tasks.length} OBJ · ${doneProtocols}/${state.rechargeData.length} RCG`;
+        }
 
         const streakBadge = document.getElementById('streak-badge');
         const streakCount = document.getElementById('streak-count');

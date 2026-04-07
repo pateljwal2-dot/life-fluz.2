@@ -377,6 +377,18 @@ input:focus {
     border-radius: var(--radius-round);
 }
 
+/* Fused Telemetry Status Tracking */
+.efficiency-status {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.7;
+}
+
 /* Day Selector */
 .day-selector {
     display: flex;
